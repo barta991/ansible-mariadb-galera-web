@@ -2,9 +2,9 @@
 Ansible scripts to deploy MariaDB cluster with any number of nodes
 
 ## Requirements
-1) ansible 1.9.2 (Only tested on this version)
-2) Password-less ssh access to the nodes and sudo access for the user. (As always)
-3) Currently developed only for Ubuntu, will try to complete it for Redhat/CentOS as well. 
+* ansible 1.9.2 (Only tested on this version)
+* Password-less ssh access to the nodes and sudo access for the user. (As always)
+* Currently developed only for Ubuntu, will try to complete it for Redhat/CentOS as well. 
 
 ## Usage
 Edit the inventory file with correct IPs and database password.
