@@ -1,0 +1,3 @@
+---
+- name: Create file
+  command: touch /tmp/test

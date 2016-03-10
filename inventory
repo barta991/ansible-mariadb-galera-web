@@ -1,0 +1,7 @@
+[database]
+192.168.1.45 ansible_ssh_user=cloud-user
+192.168.1.47 ansible_ssh_user=cloud-user
+
+[database:vars]
+root_password=TomAndJerry
+debian_sys_maint_password=TomAndJerry

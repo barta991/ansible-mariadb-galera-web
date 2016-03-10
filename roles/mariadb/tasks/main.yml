@@ -1,0 +1,74 @@
+# https://www.digitalocean.com/community/tutorials/how-to-configure-a-galera-cluster-with-mariadb-on-ubuntu-12-04-servers
+---
+- name: test 
+  file: path=/tmp/foo.conf  mode=0644 state=touch
+
+- name: Install python software properties
+  apt: name=python-software-properties state=present
+
+- name: Add keys
+  apt_key: keyserver=keyserver.ubuntu.com id=0xcbcb082a1bb943db
+
+- name: Add repositories
+  apt_repository: repo='deb http://mirror.jmu.edu/pub/mariadb/repo/5.5/ubuntu trusty main' state=present
+
+- name: Apt-get update
+  apt: update_cache=yes
+
+- name: Installing MariaDB Galera packages
+  apt: name={{item}} state=installed 
+  with_items:
+      - python-pip
+      - mariadb-galera-server
+      - galera
+      - rsync
+
+- name: start sql service and enable the service
+  service: name=mysql state=started enabled=yes
+
+- name: install python mysql bindings
+  apt: name=python-mysqldb state=installed
+  become: yes
+  become_method: sudo
+
+
+- name: set the sql root password
+  mysql_user: user=root
+                password={{ root_password }}
+                host=localhost
+
+- name: copy .my.cnf file with root password credentials
+  template: src=files/my-cnf.j2 dest=/root/.my.cnf owner=root mode=0600
+
+- name: set the sql debian-sys-maint password
+  mysql_user: user=debian-sys-maint
+                password={{ debian_sys_maint_password }}
+                host=localhost
+
+- name: copy cluster.cnf file
+  template: src=files/cluster-cnf.j2 dest=/etc/mysql/conf.d/cluster.cnf owner=root mode=0600
+
+- name: delete anonymous sql server user for localhost
+  mysql_user: user=""
+              state="absent"
+
+- name: copy debian.cnf files
+  template: src=files/debian-cnf.j2 dest=/etc/mysql/debian.cnf owner=root mode=0600
+
+- name: Stop mysql services
+  service: name=mysql state=stopped
+  ignore_errors: yes 
+
+- name: Bootstrap mysql service
+  service: name=mysql state=started args='--wsrep-new-cluster'
+  when: play_hosts[0] == inventory_hostname
+
+- name: Start mysql in other nodes
+  service: name=mysql state=restarted 
+  when: play_hosts[0] != inventory_hostname
+
+- name: Restart mysql on first node
+  service: name=mysql state=restarted
+  when: play_hosts[0] == inventory_hostname
+
+
